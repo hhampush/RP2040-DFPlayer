@@ -80,6 +80,8 @@ int16_t calculate_checksum(uint8_t *buffer){
  * @param arg The argument for the command.
  */
 void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg){
+    if (!dfplayer) return;
+    
     uint8_t buffer[10];
     int16_t checksum;
     memcpy(buffer, init_cmd_buf, 10);
@@ -107,6 +109,8 @@ void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg){
  * @return True if the query was successful, false otherwise.
  */
 bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param){
+    if (!dfplayer) return false;
+    
     uint8_t buffer[10];
     dfplayer_write(dfplayer, cmd, param);
     // TODO add non-blocking delay
@@ -140,6 +144,8 @@ bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param){
  * @return The current status of the DFPlayer.
  */
 uint8_t dfplayer_get_status(dfplayer_t *dfplayer){
+    if (!dfplayer) return 0;
+    
     dfplayer_status = 0;
     dfplayer_query(dfplayer, QUERY_STATUS, 0x0000);
     return dfplayer_status;
@@ -152,6 +158,8 @@ uint8_t dfplayer_get_status(dfplayer_t *dfplayer){
  * @return The current volume of the DFPlayer.
  */
 uint8_t dfplayer_get_volume(dfplayer_t *dfplayer){
+    if (!dfplayer) return 0;
+    
     dfplayer_volume = 0;
     dfplayer_query(dfplayer, QUERY_VOLUME, 0x0000);
     return dfplayer_volume;
@@ -164,6 +172,8 @@ uint8_t dfplayer_get_volume(dfplayer_t *dfplayer){
  * @return The current track ID of the DFPlayer.
  */
 uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer){
+    if (!dfplayer) return 0;
+    
     dfplayer_current_track = 0;
     dfplayer_query(dfplayer, QUERY_SD_TRACK, 0x0000);
     return dfplayer_current_track;
@@ -176,6 +186,8 @@ uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer){
  * @return The number of tracks on the SD card.
  */
 uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer){
+    if (!dfplayer) return 0;
+    
     dfplayer_num_tracks = 0;
     dfplayer_query(dfplayer, QUERY_NUM_SD_TRACKS, 0x0000);
     return dfplayer_num_tracks;
@@ -190,6 +202,8 @@ uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer){
  * @param gpio_rx The GPIO pin to use for reception.
  */
 void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx, uint8_t gpio_rx){
+    if (!dfplayer || !uart) return;
+    
     dfplayer->uart = uart;
     dfplayer->max_volume = 30; // Allowed values are 1 to 30
     uart_init(uart, BAUDRATE);
@@ -203,6 +217,7 @@ void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx, uin
  * @param dfplayer The DFPlayer instance to play the next track on.
  */
 void dfplayer_next(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_NEXT, 0);
 }
 
@@ -212,6 +227,7 @@ void dfplayer_next(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to play the previous track on.
  */
 void dfplayer_previous(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_PREV, 0);
 }
 
@@ -222,6 +238,7 @@ void dfplayer_previous(dfplayer_t *dfplayer){
  * @param track The track ID to play.
  */
 void dfplayer_play(dfplayer_t *dfplayer, uint16_t track){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_PLAY_TRACK, track);
 }
 
@@ -231,6 +248,7 @@ void dfplayer_play(dfplayer_t *dfplayer, uint16_t track){
  * @param dfplayer The DFPlayer instance to increase the volume on.
  */
 void dfplayer_increase_volume(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_VOL_INC, 0);
 }
 
@@ -240,6 +258,7 @@ void dfplayer_increase_volume(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to decrease the volume on.
  */
 void dfplayer_decrease_volume(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_VOL_DEC, 0);
 }
 
@@ -250,6 +269,7 @@ void dfplayer_decrease_volume(dfplayer_t *dfplayer){
  * @param volume The volume to set.
  */
 void dfplayer_set_volume(dfplayer_t *dfplayer, uint16_t volume){
+    if (!dfplayer) return;
     if (volume > dfplayer->max_volume) {volume = dfplayer->max_volume;}
     dfplayer_write(dfplayer, CMD_VOL, volume);
 }
@@ -261,6 +281,7 @@ void dfplayer_set_volume(dfplayer_t *dfplayer, uint16_t volume){
  * @param volume The maximum volume to set.
  */
 void dfplayer_set_max_volume(dfplayer_t *dfplayer, uint16_t volume) {
+    if (!dfplayer) return;
     if (volume > 30) {volume = 30;}
     dfplayer->max_volume = volume;
     dfplayer_get_volume(dfplayer);
@@ -274,6 +295,7 @@ void dfplayer_set_max_volume(dfplayer_t *dfplayer, uint16_t volume) {
  * @param eq The equalization preset to set.
  */
 void dfplayer_set_eq(dfplayer_t *dfplayer, dfplayer_eq_t eq){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_EQ, eq);
 }
 
@@ -284,6 +306,7 @@ void dfplayer_set_eq(dfplayer_t *dfplayer, dfplayer_eq_t eq){
  * @param mode The playback mode to set.
  */
 void dfplayer_set_playback_mode(dfplayer_t *dfplayer, dfplayer_mode_t mode){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_PLAYBACK_MODE, mode);
 }
 
@@ -293,6 +316,7 @@ void dfplayer_set_playback_mode(dfplayer_t *dfplayer, dfplayer_mode_t mode){
  * @param dfplayer The DFPlayer instance to resume playback on.
  */
 void dfplayer_resume(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_RESUME, 0);
 }
 
@@ -302,6 +326,7 @@ void dfplayer_resume(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to pause playback on.
  */
 void dfplayer_pause(dfplayer_t *dfplayer){
+    if (!dfplayer) return;
     dfplayer_write(dfplayer, CMD_PAUSE, 0);
 }
 

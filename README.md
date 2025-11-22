@@ -56,8 +56,9 @@ Two distinct DFPlayers can be used simultaneously using both uart0 and uart1.
 
 
 ### Version history
-- 2023.10.23 - v1.2.1 - Added max volume setting, querying current volume
-- 2023.09.30 - v1.2.0 - Added support for more clone variants
-- 2023.09.29 - v1.1.1 - Removed blocking delay while querying
-- 2023.09.03 - v1.1.0 - Added query function
+- 2025.11.22 - v1.2.2 - Add null pointer checks
+- 2023.10.23 - v1.2.1 - Add max volume setting, querying current volume
+- 2023.09.30 - v1.2.0 - Add support for more clone variants
+- 2023.09.29 - v1.1.1 - Remove blocking delay while querying
+- 2023.09.03 - v1.1.0 - Add query function
 - 2023.08.29 - v1.0.0 - First release
