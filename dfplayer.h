@@ -22,7 +22,7 @@ extern "C" {
  * @def BAUDRATE
  * @brief The baud rate for the DFPlayer serial communication.
  */
-#define BAUDRATE    9600
+#define BAUDRATE 9600
 
 /**
  * @defgroup commands DFPlayer Commands
@@ -33,79 +33,79 @@ extern "C" {
  * @def CMD_NEXT
  * @brief Command to play the next track.
  */
-#define CMD_NEXT            0x01
+#define CMD_NEXT 0x01
 
 /**
  * @def CMD_PREV
  * @brief Command to play the previous track.
  */
-#define CMD_PREV            0x02
+#define CMD_PREV 0x02
 
 /**
  * @def CMD_PLAY_TRACK
  * @brief Command to play a specific track.
  */
-#define CMD_PLAY_TRACK      0x03
+#define CMD_PLAY_TRACK 0x03
 
 /**
  * @def CMD_VOL_INC
  * @brief Command to increase the volume.
  */
-#define CMD_VOL_INC         0x04
+#define CMD_VOL_INC 0x04
 
 /**
  * @def CMD_VOL_DEC
  * @brief Command to decrease the volume.
  */
-#define CMD_VOL_DEC         0x05
+#define CMD_VOL_DEC 0x05
 
 /**
  * @def CMD_VOL
  * @brief Command to set the volume.
  */
-#define CMD_VOL             0x06
+#define CMD_VOL 0x06
 
 /**
  * @def CMD_EQ
  * @brief Command to set the equalization preset.
  */
-#define CMD_EQ              0x07
+#define CMD_EQ 0x07
 
 /**
  * @def CMD_PLAYBACK_MODE
  * @brief Command to set the playback mode.
  */
-#define CMD_PLAYBACK_MODE   0x08
+#define CMD_PLAYBACK_MODE 0x08
 
 /**
  * @def CMD_RESUME
  * @brief Command to resume playback.
  */
-#define CMD_RESUME          0x0D
+#define CMD_RESUME 0x0D
 
 /**
  * @def CMD_PAUSE
  * @brief Command to pause playback.
  */
-#define CMD_PAUSE           0x0E
+#define CMD_PAUSE 0x0E
 
 /**
  * @def QUERY_STATUS
  * @brief Command to query the player status.
  */
-#define QUERY_STATUS        0x42
+#define QUERY_STATUS 0x42
 
 /**
  * @def QUERY_VOLUME
  * @brief Command to query the current volume.
  */
-#define QUERY_VOLUME        0x43
+#define QUERY_VOLUME 0x43
 
 /**
  * @def QUERY_SD_TRACK
  * @brief Command to query the current track ID.
  */
-#define QUERY_SD_TRACK      0x4C
+#define QUERY_SD_TRACK 0x4C
 
 /**
  * @def QUERY_NUM_SD_TRACKS
@@ -127,22 +127,22 @@ extern "C" {
  * @brief Enumerates the playback modes.
  */
 typedef enum {
-    /**
-     * @brief Single play mode.
-     */
-    MODE_SINGLE_PLAY     = 0x0001,
-    /**
-     * @brief Folder repeat mode.
-     */
-    MODE_FOLDER_REPEAT   = 0x0001,
-    /**
-     * @brief Single repeat mode.
-     */
-    MODE_SINGLE_REPEAT   = 0x0002,
-    /**
-     * @brief Random mode.
-     */
-    MODE_RANDOM          = 0x0003
+  /**
+   * @brief Single play mode.
+   */
+  MODE_SINGLE_PLAY = 0x0001,
+  /**
+   * @brief Folder repeat mode.
+   */
+  MODE_FOLDER_REPEAT = 0x0001,
+  /**
+   * @brief Single repeat mode.
+   */
+  MODE_SINGLE_REPEAT = 0x0002,
+  /**
+   * @brief Random mode.
+   */
+  MODE_RANDOM = 0x0003
 } dfplayer_mode_t;
 
 /**
@@ -159,30 +159,30 @@ typedef enum {
  * @brief Enumerates the equalization presets.
  */
 typedef enum {
-    /**
-     * @brief Normal equalization preset.
-     */
-    EQ_NORMAL       = 0,
-    /**
-     * @brief Pop equalization preset.
-     */
-    EQ_POP          = 1,
-    /**
-     * @brief Rock equalization preset.
-     */
-    EQ_ROCK         = 2,
-    /**
-     * @brief Jazz equalization preset.
-     */
-    EQ_JAZZ         = 3,
-    /**
-     * @brief Classic equalization preset.
-     */
-    EQ_CLASSIC      = 4,
-    /**
-     * @brief Bass equalization preset.
-     */
-    EQ_BASS         = 5
+  /**
+   * @brief Normal equalization preset.
+   */
+  EQ_NORMAL = 0,
+  /**
+   * @brief Pop equalization preset.
+   */
+  EQ_POP = 1,
+  /**
+   * @brief Rock equalization preset.
+   */
+  EQ_ROCK = 2,
+  /**
+   * @brief Jazz equalization preset.
+   */
+  EQ_JAZZ = 3,
+  /**
+   * @brief Classic equalization preset.
+   */
+  EQ_CLASSIC = 4,
+  /**
+   * @brief Bass equalization preset.
+   */
+  EQ_BASS = 5
 } dfplayer_eq_t;
 
 /**
@@ -194,14 +194,14 @@ typedef enum {
  * @brief Structure representing a DFPlayer instance.
  */
 typedef struct {
-    /**
-     * @brief UART instance used for communication with the DFPlayer.
-     */
-    uart_inst_t *uart;
-    /**
-     * @brief Maximum allowed volume.
-     */
-    uint8_t max_volume;
+  /**
+   * @brief UART instance used for communication with the DFPlayer.
+   */
+  uart_inst_t *uart;
+  /**
+   * @brief Maximum allowed volume.
+   */
+  uint8_t max_volume;
 } dfplayer_t;
 
 /**
@@ -249,7 +249,7 @@ bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param);
  * @param dfplayer The DFPlayer instance to get the status for.
  * @return The current status of the DFPlayer.
  */
-uint8_t dfplayer_get_status(dfplayer_t *dfplayer);
+uint16_t dfplayer_get_status(dfplayer_t *dfplayer);
 
 /**
  * @brief Gets the current volume of the DFPlayer.
@@ -283,7 +283,8 @@ uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer);
  * @param gpio_tx The GPIO pin to use for transmission.
  * @param gpio_rx The GPIO pin to use for reception.
  */
-void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx, uint8_t gpio_rx);
+void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx,
+                   uint8_t gpio_rx);
 
 /**
  * @brief Plays the next track.
@@ -373,4 +374,3 @@ void dfplayer_pause(dfplayer_t *dfplayer);
 #endif
 
 #endif // INC_DFPLAYER_H_
-

@@ -10,7 +10,7 @@
 /**
  * @brief The current status of the DFPlayer.
  */
-uint8_t dfplayer_status;
+uint16_t dfplayer_status;
 
 /**
  * @brief The current volume of the DFPlayer.
@@ -56,9 +56,7 @@ uint8_t init_cmd_buf[10] = {
  * Some of them require a checksum as part of the control message,
  * some don't.
  */
-void dfplayer_set_checksum_tx(bool flag){
-    dfplayer_checksum_tx = flag;
-}
+void dfplayer_set_checksum_tx(bool flag) { dfplayer_checksum_tx = flag; }
 
 /**
  * @brief Calculates the checksum for a given buffer.
@@ -66,10 +64,11 @@ void dfplayer_set_checksum_tx(bool flag){
  * @param buffer The buffer to calculate the checksum for.
  * @return The calculated checksum.
  */
-int16_t calculate_checksum(uint8_t *buffer){
-    int16_t checksum;
-    checksum = 0 - (buffer[1] + buffer[2] + buffer[3] + buffer[4] + buffer[5] + buffer[6]);
-    return checksum;
+int16_t calculate_checksum(uint8_t *buffer) {
+  int16_t checksum;
+  checksum = 0 - (buffer[1] + buffer[2] + buffer[3] + buffer[4] + buffer[5] +
+                  buffer[6]);
+  return checksum;
 }
 
 /**
@@ -79,25 +78,26 @@ int16_t calculate_checksum(uint8_t *buffer){
  * @param cmd The command to write.
  * @param arg The argument for the command.
  */
-void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg){
-    if (!dfplayer) return;
-    
-    uint8_t buffer[10];
-    int16_t checksum;
-    memcpy(buffer, init_cmd_buf, 10);
-    buffer[3] = cmd;
-    buffer[5] = (uint8_t) (arg >> 8);
-    buffer[6] = (uint8_t) arg;
-    checksum = calculate_checksum(buffer);
-    buffer[7] = (uint8_t) (checksum >> 8);
-    buffer[8] = (uint8_t) checksum;
-    
-    if(dfplayer_checksum_tx){
-        uart_write_blocking(dfplayer->uart, buffer, 10);
-    } else {
-        buffer[7] = 0xef; // End byte
-        uart_write_blocking(dfplayer->uart, buffer, 8);
-    }
+void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg) {
+  if (!dfplayer)
+    return;
+
+  uint8_t buffer[10];
+  int16_t checksum;
+  memcpy(buffer, init_cmd_buf, 10);
+  buffer[3] = cmd;
+  buffer[5] = (uint8_t)(arg >> 8);
+  buffer[6] = (uint8_t)arg;
+  checksum = calculate_checksum(buffer);
+  buffer[7] = (uint8_t)(checksum >> 8);
+  buffer[8] = (uint8_t)checksum;
+
+  if (dfplayer_checksum_tx) {
+    uart_write_blocking(dfplayer->uart, buffer, 10);
+  } else {
+    buffer[7] = 0xef; // End byte
+    uart_write_blocking(dfplayer->uart, buffer, 8);
+  }
 }
 
 /**
@@ -108,33 +108,37 @@ void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg){
  * @param param The parameter for the query.
  * @return True if the query was successful, false otherwise.
  */
-bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param){
-    if (!dfplayer) return false;
-    
-    uint8_t buffer[10];
-    dfplayer_write(dfplayer, cmd, param);
-    // TODO add non-blocking delay
-    uart_read_blocking(dfplayer->uart, buffer, 10);
-	if(buffer[0] != init_cmd_buf[0]) return false;
-	if(buffer[2] != init_cmd_buf[2]) return false;
-	if(buffer[9] != init_cmd_buf[9]) return false;
+bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param) {
+  if (!dfplayer)
+    return false;
 
-    switch(buffer[3]){
-		case QUERY_STATUS:
-		    dfplayer_status = buffer[6];
-		break;
-        case QUERY_VOLUME:
-		    dfplayer_volume = buffer[6];
-		break;
-		case QUERY_SD_TRACK:
-		    dfplayer_current_track = (buffer[5] << 8 | buffer[6]);
-		break;
-        case QUERY_NUM_SD_TRACKS:
-		    dfplayer_num_tracks = (buffer[5] << 8 | buffer[6]);
-		break;
-    }
+  uint8_t buffer[10];
+  dfplayer_write(dfplayer, cmd, param);
+  // TODO add non-blocking delay
+  uart_read_blocking(dfplayer->uart, buffer, 10);
+  if (buffer[0] != init_cmd_buf[0])
+    return false;
+  if (buffer[2] != init_cmd_buf[2])
+    return false;
+  if (buffer[9] != init_cmd_buf[9])
+    return false;
 
-    return true;
+  switch (buffer[3]) {
+  case QUERY_STATUS:
+    dfplayer_status = ((uint16_t)buffer[6] << 8) | buffer[5];
+    break;
+  case QUERY_VOLUME:
+    dfplayer_volume = buffer[6];
+    break;
+  case QUERY_SD_TRACK:
+    dfplayer_current_track = (buffer[5] << 8 | buffer[6]);
+    break;
+  case QUERY_NUM_SD_TRACKS:
+    dfplayer_num_tracks = (buffer[5] << 8 | buffer[6]);
+    break;
+  }
+
+  return true;
 }
 
 /**
@@ -143,12 +147,13 @@ bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param){
  * @param dfplayer The DFPlayer instance to get the status for.
  * @return The current status of the DFPlayer.
  */
-uint8_t dfplayer_get_status(dfplayer_t *dfplayer){
-    if (!dfplayer) return 0;
-    
-    dfplayer_status = 0;
-    dfplayer_query(dfplayer, QUERY_STATUS, 0x0000);
-    return dfplayer_status;
+uint16_t dfplayer_get_status(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return 0;
+
+  dfplayer_status = 0;
+  dfplayer_query(dfplayer, QUERY_STATUS, 0x0000);
+  return dfplayer_status;
 }
 
 /**
@@ -157,12 +162,13 @@ uint8_t dfplayer_get_status(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to get the volume for.
  * @return The current volume of the DFPlayer.
  */
-uint8_t dfplayer_get_volume(dfplayer_t *dfplayer){
-    if (!dfplayer) return 0;
-    
-    dfplayer_volume = 0;
-    dfplayer_query(dfplayer, QUERY_VOLUME, 0x0000);
-    return dfplayer_volume;
+uint8_t dfplayer_get_volume(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return 0;
+
+  dfplayer_volume = 0;
+  dfplayer_query(dfplayer, QUERY_VOLUME, 0x0000);
+  return dfplayer_volume;
 }
 
 /**
@@ -171,12 +177,13 @@ uint8_t dfplayer_get_volume(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to get the track ID for.
  * @return The current track ID of the DFPlayer.
  */
-uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer){
-    if (!dfplayer) return 0;
-    
-    dfplayer_current_track = 0;
-    dfplayer_query(dfplayer, QUERY_SD_TRACK, 0x0000);
-    return dfplayer_current_track;
+uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return 0;
+
+  dfplayer_current_track = 0;
+  dfplayer_query(dfplayer, QUERY_SD_TRACK, 0x0000);
+  return dfplayer_current_track;
 }
 
 /**
@@ -185,12 +192,13 @@ uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to get the number of tracks for.
  * @return The number of tracks on the SD card.
  */
-uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer){
-    if (!dfplayer) return 0;
-    
-    dfplayer_num_tracks = 0;
-    dfplayer_query(dfplayer, QUERY_NUM_SD_TRACKS, 0x0000);
-    return dfplayer_num_tracks;
+uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return 0;
+
+  dfplayer_num_tracks = 0;
+  dfplayer_query(dfplayer, QUERY_NUM_SD_TRACKS, 0x0000);
+  return dfplayer_num_tracks;
 }
 
 /**
@@ -201,14 +209,16 @@ uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer){
  * @param gpio_tx The GPIO pin to use for transmission.
  * @param gpio_rx The GPIO pin to use for reception.
  */
-void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx, uint8_t gpio_rx){
-    if (!dfplayer || !uart) return;
-    
-    dfplayer->uart = uart;
-    dfplayer->max_volume = 30; // Allowed values are 1 to 30
-    uart_init(uart, BAUDRATE);
-    gpio_set_function(gpio_tx, GPIO_FUNC_UART);
-    gpio_set_function(gpio_rx, GPIO_FUNC_UART);
+void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx,
+                   uint8_t gpio_rx) {
+  if (!dfplayer || !uart)
+    return;
+
+  dfplayer->uart = uart;
+  dfplayer->max_volume = 30; // Allowed values are 1 to 30
+  uart_init(uart, BAUDRATE);
+  gpio_set_function(gpio_tx, GPIO_FUNC_UART);
+  gpio_set_function(gpio_rx, GPIO_FUNC_UART);
 }
 
 /**
@@ -216,9 +226,10 @@ void dfplayer_init(dfplayer_t *dfplayer, uart_inst_t *uart, uint8_t gpio_tx, uin
  *
  * @param dfplayer The DFPlayer instance to play the next track on.
  */
-void dfplayer_next(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_NEXT, 0);
+void dfplayer_next(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_NEXT, 0);
 }
 
 /**
@@ -226,9 +237,10 @@ void dfplayer_next(dfplayer_t *dfplayer){
  *
  * @param dfplayer The DFPlayer instance to play the previous track on.
  */
-void dfplayer_previous(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_PREV, 0);
+void dfplayer_previous(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_PREV, 0);
 }
 
 /**
@@ -237,9 +249,10 @@ void dfplayer_previous(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to play the track on.
  * @param track The track ID to play.
  */
-void dfplayer_play(dfplayer_t *dfplayer, uint16_t track){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_PLAY_TRACK, track);
+void dfplayer_play(dfplayer_t *dfplayer, uint16_t track) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_PLAY_TRACK, track);
 }
 
 /**
@@ -247,9 +260,10 @@ void dfplayer_play(dfplayer_t *dfplayer, uint16_t track){
  *
  * @param dfplayer The DFPlayer instance to increase the volume on.
  */
-void dfplayer_increase_volume(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_VOL_INC, 0);
+void dfplayer_increase_volume(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_VOL_INC, 0);
 }
 
 /**
@@ -257,9 +271,10 @@ void dfplayer_increase_volume(dfplayer_t *dfplayer){
  *
  * @param dfplayer The DFPlayer instance to decrease the volume on.
  */
-void dfplayer_decrease_volume(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_VOL_DEC, 0);
+void dfplayer_decrease_volume(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_VOL_DEC, 0);
 }
 
 /**
@@ -268,10 +283,13 @@ void dfplayer_decrease_volume(dfplayer_t *dfplayer){
  * @param dfplayer The DFPlayer instance to set the volume on.
  * @param volume The volume to set.
  */
-void dfplayer_set_volume(dfplayer_t *dfplayer, uint16_t volume){
-    if (!dfplayer) return;
-    if (volume > dfplayer->max_volume) {volume = dfplayer->max_volume;}
-    dfplayer_write(dfplayer, CMD_VOL, volume);
+void dfplayer_set_volume(dfplayer_t *dfplayer, uint16_t volume) {
+  if (!dfplayer)
+    return;
+  if (volume > dfplayer->max_volume) {
+    volume = dfplayer->max_volume;
+  }
+  dfplayer_write(dfplayer, CMD_VOL, volume);
 }
 
 /**
@@ -281,11 +299,16 @@ void dfplayer_set_volume(dfplayer_t *dfplayer, uint16_t volume){
  * @param volume The maximum volume to set.
  */
 void dfplayer_set_max_volume(dfplayer_t *dfplayer, uint16_t volume) {
-    if (!dfplayer) return;
-    if (volume > 30) {volume = 30;}
-    dfplayer->max_volume = volume;
-    dfplayer_get_volume(dfplayer);
-    if(volume < dfplayer_volume){ dfplayer_set_volume(dfplayer, volume); }
+  if (!dfplayer)
+    return;
+  if (volume > 30) {
+    volume = 30;
+  }
+  dfplayer->max_volume = volume;
+  dfplayer_get_volume(dfplayer);
+  if (volume < dfplayer_volume) {
+    dfplayer_set_volume(dfplayer, volume);
+  }
 }
 
 /**
@@ -294,9 +317,10 @@ void dfplayer_set_max_volume(dfplayer_t *dfplayer, uint16_t volume) {
  * @param dfplayer The DFPlayer instance to set the equalization preset on.
  * @param eq The equalization preset to set.
  */
-void dfplayer_set_eq(dfplayer_t *dfplayer, dfplayer_eq_t eq){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_EQ, eq);
+void dfplayer_set_eq(dfplayer_t *dfplayer, dfplayer_eq_t eq) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_EQ, eq);
 }
 
 /**
@@ -305,9 +329,10 @@ void dfplayer_set_eq(dfplayer_t *dfplayer, dfplayer_eq_t eq){
  * @param dfplayer The DFPlayer instance to set the playback mode on.
  * @param mode The playback mode to set.
  */
-void dfplayer_set_playback_mode(dfplayer_t *dfplayer, dfplayer_mode_t mode){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_PLAYBACK_MODE, mode);
+void dfplayer_set_playback_mode(dfplayer_t *dfplayer, dfplayer_mode_t mode) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_PLAYBACK_MODE, mode);
 }
 
 /**
@@ -315,9 +340,10 @@ void dfplayer_set_playback_mode(dfplayer_t *dfplayer, dfplayer_mode_t mode){
  *
  * @param dfplayer The DFPlayer instance to resume playback on.
  */
-void dfplayer_resume(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_RESUME, 0);
+void dfplayer_resume(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_RESUME, 0);
 }
 
 /**
@@ -325,8 +351,8 @@ void dfplayer_resume(dfplayer_t *dfplayer){
  *
  * @param dfplayer The DFPlayer instance to pause playback on.
  */
-void dfplayer_pause(dfplayer_t *dfplayer){
-    if (!dfplayer) return;
-    dfplayer_write(dfplayer, CMD_PAUSE, 0);
+void dfplayer_pause(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_PAUSE, 0);
 }
-
