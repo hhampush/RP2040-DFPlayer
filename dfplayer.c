@@ -357,3 +357,25 @@ void dfplayer_pause(dfplayer_t *dfplayer) {
     return;
   dfplayer_write(dfplayer, CMD_PAUSE, 0);
 }
+
+/**
+ * @brief Stops playback.
+ *
+ * @param dfplayer The DFPlayer instance to stop playback on.
+ */
+void dfplayer_stop(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_STOP, 0);
+}
+
+/**
+ * @brief Resets the DFPlayer.
+ *
+ * @param dfplayer The DFPlayer instance to reset.
+ */
+void dfplayer_reset(dfplayer_t *dfplayer) {
+  if (!dfplayer)
+    return;
+  dfplayer_write(dfplayer, CMD_RESET, 0);
+}

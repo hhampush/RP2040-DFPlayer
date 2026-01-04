@@ -90,6 +90,18 @@ extern "C" {
 #define CMD_PAUSE 0x0E
 
 /**
+ * @def CMD_STOP
+ * @brief Command to stop playback.
+ */
+#define CMD_STOP 0x16
+
+/**
+ * @def CMD_RESET
+ * @brief Command to reset the DFPlayer.
+ */
+#define CMD_RESET 0x0C
+
+/**
  * @def QUERY_STATUS
  * @brief Command to query the player status.
  */
@@ -365,6 +377,19 @@ void dfplayer_resume(dfplayer_t *dfplayer);
  */
 void dfplayer_pause(dfplayer_t *dfplayer);
 
+/**
+ * @brief Stops playback.
+ *
+ * @param dfplayer The DFPlayer instance to stop playback on.
+ */
+void dfplayer_stop(dfplayer_t *dfplayer);
+
+/**
+ * @brief Reset the DFPlayer.
+ *
+ * @param dfplayer The DFPlayer instance to reset.
+ */
+void dfplayer_reset(dfplayer_t *dfplayer);
 /**
  * @}
  */
