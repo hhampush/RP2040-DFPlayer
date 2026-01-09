@@ -251,41 +251,52 @@ void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg);
  * @param dfplayer The DFPlayer instance to query.
  * @param cmd The command to query.
  * @param param The parameter for the query.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return True if the query was successful, false otherwise.
  */
-bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param);
+bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param,
+                    uint16_t retry_count);
 
 /**
  * @brief Gets the current status of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the status for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current status of the DFPlayer.
  */
-uint16_t dfplayer_get_status(dfplayer_t *dfplayer);
+uint16_t dfplayer_get_status(dfplayer_t *dfplayer, uint16_t retry_count);
 
 /**
  * @brief Gets the current volume of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the volume for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current volume of the DFPlayer.
  */
-uint8_t dfplayer_get_volume(dfplayer_t *dfplayer);
+uint8_t dfplayer_get_volume(dfplayer_t *dfplayer, uint16_t retry_count);
 
 /**
  * @brief Gets the current track ID of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the track ID for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current track ID of the DFPlayer.
  */
-uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer);
+uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer, uint16_t retry_count);
 
 /**
  * @brief Gets the number of tracks on the SD card.
  *
  * @param dfplayer The DFPlayer instance to get the number of tracks for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The number of tracks on the SD card.
  */
-uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer);
+uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer, uint16_t retry_count);
 
 /**
  * @brief Initializes a DFPlayer instance.

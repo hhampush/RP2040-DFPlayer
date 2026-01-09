@@ -5,6 +5,7 @@
  */
 
 #include "dfplayer.h"
+#include <stdint.h>
 #include <string.h>
 
 /**
@@ -106,54 +107,78 @@ void dfplayer_write(dfplayer_t *dfplayer, uint8_t cmd, uint16_t arg) {
  * @param dfplayer The DFPlayer instance to query.
  * @param cmd The command to query.
  * @param param The parameter for the query.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return True if the query was successful, false otherwise.
  */
-bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param) {
+bool dfplayer_query(dfplayer_t *dfplayer, uint8_t cmd, uint16_t param,
+                    uint16_t retry_count) {
   if (!dfplayer)
     return false;
 
-  uint8_t buffer[10] = {0};
-  dfplayer_write(dfplayer, cmd, param);
-  sleep_ms(100);
-  // TODO add non-blocking delay
-  uart_read_blocking(dfplayer->uart, buffer, 10);
-  if (buffer[0] != init_cmd_buf[0])
-    return false;
-  if (buffer[2] != init_cmd_buf[2])
-    return false;
-  if (buffer[9] != init_cmd_buf[9])
-    return false;
+  uint16_t attempts = 0;
+  while (attempts <= retry_count) {
+    if (attempts > 0) {
+      sleep_ms(200);
+    }
 
-  switch (buffer[3]) {
-  case QUERY_STATUS:
-    dfplayer_status = ((uint16_t)buffer[6] << 8) | buffer[5];
-    break;
-  case QUERY_VOLUME:
-    dfplayer_volume = buffer[6];
-    break;
-  case QUERY_SD_TRACK:
-    dfplayer_current_track = (buffer[5] << 8 | buffer[6]);
-    break;
-  case QUERY_NUM_SD_TRACKS:
-    dfplayer_num_tracks = (buffer[5] << 8 | buffer[6]);
-    break;
+    uint8_t buffer[10] = {0};
+    dfplayer_write(dfplayer, cmd, param);
+    sleep_ms(50);
+    uart_read_blocking(dfplayer->uart, buffer, 10);
+    if (buffer[0] != init_cmd_buf[0])
+      return false;
+    if (buffer[2] != init_cmd_buf[2])
+      return false;
+    if (buffer[9] != init_cmd_buf[9])
+      return false;
+
+    switch (buffer[3]) {
+    case QUERY_STATUS:
+      dfplayer_status = ((uint16_t)buffer[6] << 8) | buffer[5];
+      if (dfplayer_status != 0) {
+        return true;
+      }
+      break;
+    case QUERY_VOLUME:
+      dfplayer_volume = buffer[6];
+      if (dfplayer_volume != 0) {
+        return true;
+      }
+      break;
+    case QUERY_SD_TRACK:
+      dfplayer_current_track = (buffer[5] << 8 | buffer[6]);
+      if (dfplayer_current_track != 0) {
+        return true;
+      }
+      break;
+    case QUERY_NUM_SD_TRACKS:
+      dfplayer_num_tracks = (buffer[5] << 8 | buffer[6]);
+      if (dfplayer_num_tracks != 0) {
+        return true;
+      }
+      break;
+    }
+
+    attempts++;
   }
-
-  return true;
+  return false;
 }
 
 /**
  * @brief Gets the current status of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the status for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current status of the DFPlayer.
  */
-uint16_t dfplayer_get_status(dfplayer_t *dfplayer) {
+uint16_t dfplayer_get_status(dfplayer_t *dfplayer, uint16_t retry_count) {
   if (!dfplayer)
     return 0;
 
   dfplayer_status = 0;
-  dfplayer_query(dfplayer, QUERY_STATUS, 0x0000);
+  dfplayer_query(dfplayer, QUERY_STATUS, 0x0000, retry_count);
   return dfplayer_status;
 }
 
@@ -161,14 +186,16 @@ uint16_t dfplayer_get_status(dfplayer_t *dfplayer) {
  * @brief Gets the current volume of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the volume for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current volume of the DFPlayer.
  */
-uint8_t dfplayer_get_volume(dfplayer_t *dfplayer) {
+uint8_t dfplayer_get_volume(dfplayer_t *dfplayer, uint16_t retry_count) {
   if (!dfplayer)
     return 0;
 
   dfplayer_volume = 0;
-  dfplayer_query(dfplayer, QUERY_VOLUME, 0x0000);
+  dfplayer_query(dfplayer, QUERY_VOLUME, 0x0000, retry_count);
   return dfplayer_volume;
 }
 
@@ -176,14 +203,16 @@ uint8_t dfplayer_get_volume(dfplayer_t *dfplayer) {
  * @brief Gets the current track ID of the DFPlayer.
  *
  * @param dfplayer The DFPlayer instance to get the track ID for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The current track ID of the DFPlayer.
  */
-uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer) {
+uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer, uint16_t retry_count) {
   if (!dfplayer)
     return 0;
 
   dfplayer_current_track = 0;
-  dfplayer_query(dfplayer, QUERY_SD_TRACK, 0x0000);
+  dfplayer_query(dfplayer, QUERY_SD_TRACK, 0x0000, retry_count);
   return dfplayer_current_track;
 }
 
@@ -191,14 +220,16 @@ uint16_t dfplayer_get_track_id(dfplayer_t *dfplayer) {
  * @brief Gets the number of tracks on the SD card.
  *
  * @param dfplayer The DFPlayer instance to get the number of tracks for.
+ * @param retry_count The number of times to retry the query if no status is
+ * received.
  * @return The number of tracks on the SD card.
  */
-uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer) {
+uint16_t dfplayer_get_num_tracks(dfplayer_t *dfplayer, uint16_t retry_count) {
   if (!dfplayer)
     return 0;
 
   dfplayer_num_tracks = 0;
-  dfplayer_query(dfplayer, QUERY_NUM_SD_TRACKS, 0x0000);
+  dfplayer_query(dfplayer, QUERY_NUM_SD_TRACKS, 0x0000, retry_count);
   return dfplayer_num_tracks;
 }
 
@@ -306,7 +337,7 @@ void dfplayer_set_max_volume(dfplayer_t *dfplayer, uint16_t volume) {
     volume = 30;
   }
   dfplayer->max_volume = volume;
-  dfplayer_get_volume(dfplayer);
+  dfplayer_get_volume(dfplayer, 5);
   if (volume < dfplayer_volume) {
     dfplayer_set_volume(dfplayer, volume);
   }
